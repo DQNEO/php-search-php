@@ -4,11 +4,10 @@
  * 
  */
 
-namespace pudding;
 
 ini_set("memory_limit", -1);
 
-const VERSION = "0.1.0";
+define("VERSION", "0.1.0");
 
 $version = VERSION;
 echo <<<EEE
