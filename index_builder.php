@@ -1,7 +1,11 @@
 <?php
-/** 
- * 
- * 
+/**
+ * Hyper Pudding
+ * - rapid and stupid search engine script for PHP source code.  -
+ *
+ * @author  sotarok
+ * @versoin 0.1.0
+ * @license The MIT License
  */
 
 
@@ -11,14 +15,15 @@ define("VERSION", "0.1.0");
 
 $version = VERSION;
 echo <<<EEE
-** ---------------------------------------------- **
- Hyper Pudding - a rapid PHP source search -
+** --------------------------------------------------------------- **
+ Hyper Pudding
+    - rapid and stupid search engine script for PHP source code.  -
  pudding\index_builder
 
  @license   The MIT License
  @author    sotarok <sotaro.k /at/ gmail.com>
  @version   {$version}
-** ---------------------------------------------- **
+** --------------------------------------------------------------- **
 
 EEE;
 
