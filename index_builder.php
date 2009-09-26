@@ -4,14 +4,14 @@
  * - rapid and stupid search engine script for PHP source code.  -
  *
  * @author  sotarok
- * @versoin 0.1.1
+ * @versoin 0.1.2
  * @license The MIT License
  */
 
 
 ini_set("memory_limit", -1);
 
-define("VERSION", "0.1.1");
+define("VERSION", "0.1.2");
 
 $version = VERSION;
 echo <<<EEE
@@ -68,9 +68,29 @@ class index_builder
     public function search($keyword)
     {
         if (isset($this->_inverted_index[$keyword])) {
-            return $this->_inverted_index[$keyword];
+            return $this->scoring($this->_inverted_index[$keyword]);
         }
         return false;
+    }
+
+    public function scoring(&$ii)
+    {
+        $scored = array();
+        $tmp = array();
+        foreach ($ii as $k => $v) {
+            if (isset($scored[$v[0]])) {
+                $scored[$v[0]]['count']++;
+                $scored[$v[0]]['pos'][] = $v[1];
+            }
+            else {
+                $scored[$v[0]] = array(
+                    'count' => 0,
+                    'pos' => array($v[1]),
+                );
+            }
+        }
+        uasort($scored, create_function('$v1, $v2', 'return $v1[\'count\'] < $v2[\'count\'];'));
+        return $scored;
     }
 
     public function tokenizer()
@@ -196,8 +216,9 @@ while(!empty($key)) {
     $res = $builder->search($key);
     $esec = microtime(true);
     if ($res) {
-        foreach ($res as $r) {
-            echo "\t", str_replace($argv[1], "", $r[0]), " on line ", $r[1], PHP_EOL;
+        foreach ($res as $k => $r) {
+            //echo "\t", str_replace($argv[1], "", $r[0]), " on line ", $r[1], PHP_EOL;
+            echo "     ", sprintf("%-50s", str_replace($argv[1], "", $k)), " on line ", join(", ", $r['pos']), PHP_EOL;
         }
     }
     else {
