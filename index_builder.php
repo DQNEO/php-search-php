@@ -4,14 +4,14 @@
  * - rapid and stupid search engine script for PHP source code.  -
  *
  * @author  sotarok
- * @versoin 0.1.0
+ * @versoin 0.1.1
  * @license The MIT License
  */
 
 
 ini_set("memory_limit", -1);
 
-define("VERSION", "0.1.0");
+define("VERSION", "0.1.1");
 
 $version = VERSION;
 echo <<<EEE
@@ -31,6 +31,7 @@ class index_builder
 {
     public $is_debug = true;
     protected $_basedir = "";
+    protected $_index_filename = "";
     protected $_source_list = array();
 
     protected $_token_index = 1;
@@ -46,6 +47,7 @@ class index_builder
     public function __construct($basedir, Array $tokenize_tokens = array(), $is_debug = false)
     {
         $this->_basedir = $basedir;
+        $this->_index_filename = "._index_" . md5($this->_basedir);
         if (!empty($tokenize_tokens)) {
             $this->_tokenize_tokens = $tokenize_tokens;
         }
@@ -88,6 +90,42 @@ class index_builder
         }
     }
 
+    public function save()
+    {
+        file_put_contents($this->filename(), serialize($this->_inverted_index));
+        return $this;
+    }
+
+    public function load()
+    {
+        $this->_inverted_index = unserialize(file_get_contents($this->filename()));
+        return $this;
+    }
+
+    public function filename($filename = null)
+    {
+        if ($filename === null) {
+            return $this->_index_filename;
+        }
+        else {
+            $this->_index_filename = $filename;
+            return $this;
+        }
+    }
+
+    public function index_file_exists()
+    {
+        return file_exists($this->filename());
+    }
+
+    public function delete_index_file()
+    {
+        if (!unlink($this->filename())) {
+            throw new Exception(sprintf("Cannot delete index file (%s).", $this->filename()));
+        }
+        return $this;
+    }
+
     public function info()
     {
         if ($this->is_debug) {
@@ -100,7 +138,7 @@ class index_builder
         $files = array();
         foreach (glob($dirname . "/*") as $file) {
             if (is_dir($file)) {
-                $files = array_merge($files, static::crawl_recursive($file));
+                $files = array_merge($files, self::crawl_recursive($file));
             }
             else {
                 if (preg_match('/.+\.php$/', $file)) {
@@ -125,7 +163,21 @@ Invalid arguments:
 }
 
 $builder = new index_builder(rtrim($argv[1], "/"));
-$builder->build_index();
+
+if ($builder->index_file_exists()) {
+    echo "Indexed file found (created at  ", date("Y-m-d H:i:s", filemtime($builder->filename())), ") / load ? [Y/n]:";
+    $ans = trim(fgets(STDIN));
+    if (strtolower($ans) == 'y' || empty($ans)) {
+        $builder->load();
+    }
+    else {
+        $builder->delete_index_file();
+        $builder->build_index();
+    }
+}
+else {
+    $builder->build_index();
+}
 
 echo " mem: ", printf("%.5f", memory_get_usage()/1024/1024), " MB used.", PHP_EOL;
 
@@ -156,4 +208,10 @@ while(!empty($key)) {
 
     echo "> ";
     $key = trim(fgets(STDIN));
+}
+
+echo "Do you want to save? [y/N]: ";
+$ans = trim(fgets(STDIN));
+if (strtolower($ans) == 'y') {
+    $builder->save();
 }
