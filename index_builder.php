@@ -6,12 +6,14 @@
  * @author  sotarok
  * @versoin 0.1.2
  * @license The MIT License
+ * @requir  PHP > 5.3
  */
 
+namespace pudding\search;
 
 ini_set("memory_limit", -1);
 
-define("VERSION", "0.1.2");
+const VERSION = "0.1.2";
 
 $version = VERSION;
 echo <<<EEE
@@ -29,7 +31,7 @@ EEE;
 
 class index_builder
 {
-    public $is_debug = true;
+    public $is_debug;
     protected $_basedir = "";
     protected $_index_filename = "";
     protected $_source_list = array();
@@ -44,20 +46,28 @@ class index_builder
     );
     protected $_inverted_index = array();
 
-    public function __construct($basedir, Array $tokenize_tokens = array(), $is_debug = false)
+    public function __construct($basedir, Array $options = array())
     {
         $this->_basedir = $basedir;
         $this->_index_filename = "._index_" . md5($this->_basedir);
-        if (!empty($tokenize_tokens)) {
-            $this->_tokenize_tokens = $tokenize_tokens;
-        }
 
-        $this->is_debug = $is_debug;
+        $this->_options = new \ArrayObject($options);
+        $this->_tokenize_tokens = $this->get_options("tokenize_tokens", $this->_tokenize_tokens);
+        $this->is_debug = $this->get_options("is_debug", false);
+    }
+
+    public function set_options(ArrayObject $option) {
+        $this->_options = $options;
+    }
+
+    public function get_options($key, $default = "")
+    {
+        return isset($this->_options->$key) ? $this->_options->$key : $default;
     }
 
     public function build_index()
     {
-        $this->_source_list = self::crawl_recursive($this->_basedir);
+        $this->_source_list = $this->crawl_recursive($this->_basedir);
 
         $sec =  microtime(true);
         $this->tokenizer();
@@ -89,7 +99,10 @@ class index_builder
                 );
             }
         }
-        uasort($scored, create_function('$v1, $v2', 'return $v1[\'count\'] < $v2[\'count\'];'));
+        uasort($scored, function($v1, $v2) {
+            return $v1['count'] < $v2['count'];
+        });
+
         return $scored;
     }
 
@@ -141,7 +154,7 @@ class index_builder
     public function delete_index_file()
     {
         if (!unlink($this->filename())) {
-            throw new Exception(sprintf("Cannot delete index file (%s).", $this->filename()));
+            throw new \Exception(sprintf("Cannot delete index file (%s).", $this->filename()));
         }
         return $this;
     }
@@ -153,15 +166,15 @@ class index_builder
         }
     }
 
-    public static function crawl_recursive ($dirname)
+    public function crawl_recursive ($dirname)
     {
         $files = array();
         foreach (glob($dirname . "/*") as $file) {
             if (is_dir($file)) {
-                $files = array_merge($files, self::crawl_recursive($file));
+                $files = array_merge($files, $this->crawl_recursive($file));
             }
             else {
-                if (preg_match('/.+\.php$/', $file)) {
+                if (preg_match('/.+\.(' . join($this->get_options("ext", array("php",))) .')$/', $file)) {
                     $files[] = $file;
                 }
             }
@@ -217,7 +230,6 @@ while(!empty($key)) {
     $esec = microtime(true);
     if ($res) {
         foreach ($res as $k => $r) {
-            //echo "\t", str_replace($argv[1], "", $r[0]), " on line ", $r[1], PHP_EOL;
             echo "     ", sprintf("%-50s", str_replace($argv[1], "", $k)), " on line ", join(", ", $r['pos']), PHP_EOL;
         }
     }
