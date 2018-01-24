@@ -4,7 +4,7 @@
  * Hyper Pudding
  * - yet another rapid and stupid search engine for PHP source code. -
  *
- * @author  DQNEO (forked from sotarok)
+ * @author  DQNEO (originally sotarok)
  * @see     http://www.slideshare.net/sotarok/php-source-code-search-with-php
  * @versoin 0.0.1
  * @license The MIT License
