@@ -20,7 +20,8 @@
  */
 ini_set("memory_limit", -1);
 
-class Pudding_Index {
+class Pudding_Index
+{
 
     private $base_dir = '/tmp/pudding/';
     private $tmp_inverted_index = array();
@@ -30,9 +31,9 @@ class Pudding_Index {
      */
     public function cleanup()
     {
-        if (! is_dir($this->base_dir)) {
+        if (!is_dir($this->base_dir)) {
             mkdir($this->base_dir, 0777);
-            return ;
+            return;
         }
 
         foreach (glob($this->base_dir . '/*') as $file) {
@@ -44,8 +45,8 @@ class Pudding_Index {
     /**
      *  add an entry to the index
      *
-     *  @param  string $keyword 
-     *  @param  array $item
+     * @param  string $keyword
+     * @param  array $item
      */
     public function add($keyword, array $item)
     {
@@ -65,8 +66,8 @@ class Pudding_Index {
     /**
      *  get the file path of the index
      *
-     *  @param  string $keyword
-     *  @return string $filename 絶対パス
+     * @param  string $keyword
+     * @return string $filename 絶対パス
      */
     private function filename($keyword)
     {
@@ -76,9 +77,9 @@ class Pudding_Index {
     /**
      *  check if entry exists in the index
      *
-     *  @return bool
+     * @return bool
      */
-    public  function exist($keyword)
+    public function exist($keyword)
     {
         return is_file($this->filename($keyword));
     }
@@ -86,7 +87,7 @@ class Pudding_Index {
     /**
      *  get an entry from the index
      *
-     *  @return array $entry
+     * @return array $entry
      */
     private function get($keyword)
     {
@@ -96,7 +97,7 @@ class Pudding_Index {
     /**
      *  get a score of an entry from the index
      *
-     *  @return array $scored
+     * @return array $scored
      */
     public function score($keyword)
     {
@@ -106,7 +107,7 @@ class Pudding_Index {
     /**
      *  calculate score (TBD)
      *
-     *  @return array $scored
+     * @return array $scored
      */
     private function _score(&$ii)
     {
@@ -116,12 +117,11 @@ class Pudding_Index {
             if (isset($scored[$v[0]])) {
                 $scored[$v[0]]['count']++;
                 $scored[$v[0]]['pos'][] = $v[1];
-            }
-            else {
+            } else {
                 $scored[$v[0]] = array(
                     'count' => 0,
                     'pos' => array($v[1]),
-                    );
+                );
             }
         }
 
@@ -148,7 +148,7 @@ class Pudding_Builder
         T_STRING_VARNAME,
         T_STRING,
         T_VARIABLE,
-        );
+    );
 
     private $index;
 
@@ -160,7 +160,7 @@ class Pudding_Builder
 
     private function parseArgv($dirs)
     {
-        for($i = 1; $i < count($dirs); $i++) {
+        for ($i = 1; $i < count($dirs); $i++) {
             $this->_target_dirs[] = rtrim($dirs[$i], "/");
         }
     }
@@ -171,7 +171,7 @@ class Pudding_Builder
      */
     public function make()
     {
-        $sec =  microtime(true);
+        $sec = microtime(true);
 
         $this->index->cleanup();
 
@@ -180,19 +180,19 @@ class Pudding_Builder
         }
 
         $this->parseFiles();
-        $esec =  microtime(true);
-        $this->info("Index Built on Memory: ", $esec - $sec ," sec", PHP_EOL);
+        $esec = microtime(true);
+        $this->info("Index Built on Memory: ", $esec - $sec, " sec", PHP_EOL);
         $this->report_memory();
 
         $this->index->save();
 
-        $this->info("Index Saved: ", $esec - $sec ," sec", PHP_EOL) ;
+        $this->info("Index Saved: ", $esec - $sec, " sec", PHP_EOL);
     }
 
     /**
      *  make file list recursively
      *
-     *  @param string $dirname
+     * @param string $dirname
      */
     private function find_files($dirname)
     {
@@ -202,7 +202,7 @@ class Pudding_Builder
                 $this->find_files($dir);
             } else {
                 $file = $node;
-                if (preg_match('/.+\.(' . 'php' .')$/', $file)) {
+                if (preg_match('/.+\.(' . 'php' . ')$/', $file)) {
                     $this->_files[] = $file;
                 }
             }
@@ -225,7 +225,7 @@ class Pudding_Builder
     private function parseFile($file)
     {
         foreach (token_get_all(file_get_contents($file)) as $token) {
-            if (! is_array($token)) {
+            if (!is_array($token)) {
                 continue;
             }
 
@@ -245,9 +245,9 @@ class Pudding_Builder
         }
     }
 
-    public function report_memory ()
+    public function report_memory()
     {
-        $msg = sprintf("mem: %.5f MB used.\n" , memory_get_usage()/1024/1024 );
+        $msg = sprintf("mem: %.5f MB used.\n", memory_get_usage() / 1024 / 1024);
         $this->info($msg);
     }
 }
@@ -264,7 +264,7 @@ class Pudding_Searcher
     /**
      *  search
      *
-     *  @param string $keyword
+     * @param string $keyword
      */
     public function search($keyword)
     {
@@ -272,14 +272,14 @@ class Pudding_Searcher
         $res = $this->_search($keyword);
 
         echo "$keyword :", PHP_EOL;
-        if (! $res) {
+        if (!$res) {
             echo "Not Found.", PHP_EOL;
             exit(0);
         }
 
         foreach ($res as $k => $r) {
             echo sprintf("     %-50s line %s", $k, join(", ", $r['pos'])), PHP_EOL;
-             }
+        }
 
         $esec = microtime(true);
         echo "sec: ", printf("%.5f", $esec - $sec), PHP_EOL;
@@ -289,12 +289,12 @@ class Pudding_Searcher
     /**
      *  search internally
      *
-     *  @param string $keyword
-     *  @return score or false(not found)
+     * @param string $keyword
+     * @return score or false(not found)
      */
     private function _search($keyword)
     {
-        if (! $this->index->exist($keyword)) {
+        if (!$this->index->exist($keyword)) {
             return false;
         }
 
@@ -303,7 +303,8 @@ class Pudding_Searcher
 
 }
 
-class Pudding {
+class Pudding
+{
 
     public static function run($argc, $argv)
     {
