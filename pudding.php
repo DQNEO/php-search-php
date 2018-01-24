@@ -26,7 +26,7 @@ class Pudding_Index {
     private $tmp_inverted_index = array();
 
     /**
-     *  インデックスを削除する
+     *  destroy the index
      */
     public function cleanup()
     {
@@ -42,7 +42,7 @@ class Pudding_Index {
     }
 
     /**
-     *  インデックスにエントリを追加する
+     *  add an entry to the index
      *
      *  @param  string $keyword 
      *  @param  array $item
@@ -53,7 +53,7 @@ class Pudding_Index {
     }
 
     /**
-     *  インデックスをメモリからディスクに保存する
+     *  save the index to disk
      */
     public function save()
     {
@@ -63,7 +63,7 @@ class Pudding_Index {
     }
 
     /**
-     *  インデックスファイルのファイル名を返す
+     *  get the file path of the index
      *
      *  @param  string $keyword
      *  @return string $filename 絶対パス
@@ -74,7 +74,7 @@ class Pudding_Index {
     }
 
     /**
-     *  indexにエントリが存在するかどうかを調べる
+     *  check if entry exists in the index
      *
      *  @return bool
      */
@@ -84,7 +84,7 @@ class Pudding_Index {
     }
 
     /**
-     *  indexからエントリを取得する
+     *  get an entry from the index
      *
      *  @return array $entry
      */
@@ -94,7 +94,7 @@ class Pudding_Index {
     }
 
     /**
-     *  indexからエントリを取得し、スコアリングして返す
+     *  get a score of an entry from the index
      *
      *  @return array $scored
      */
@@ -104,7 +104,7 @@ class Pudding_Index {
     }
 
     /**
-     *  スコアリングする(未実装)
+     *  calculate score (TBD)
      *
      *  @return array $scored
      */
@@ -166,7 +166,7 @@ class Pudding_Builder
     }
 
     /**
-     *  インデックスを構築する
+     *  make the index
      *
      */
     public function make()
@@ -190,7 +190,7 @@ class Pudding_Builder
     }
 
     /**
-     *  ディレクトリを再帰的にたどってファイルリストを作成する
+     *  make file list recursively
      *
      *  @param string $dirname
      */
@@ -219,9 +219,8 @@ class Pudding_Builder
     }
 
     /**
-     *  PHPファイルをパースする
+     *  parse a php file
      *
-     *  @param string $file パス名
      */
     private function parseFile($file)
     {
@@ -263,7 +262,7 @@ class Pudding_Searcher
     }
 
     /**
-     *  検索をする
+     *  search
      *
      *  @param string $keyword
      */
@@ -288,10 +287,10 @@ class Pudding_Searcher
     }
 
     /**
-     *  検索をする(内部処理)
+     *  search internally
      *
      *  @param string $keyword
-     *  @return score or false ヒットなし
+     *  @return score or false(not found)
      */
     private function _search($keyword)
     {
